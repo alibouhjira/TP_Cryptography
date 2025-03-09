@@ -1,0 +1,167 @@
+import subprocess
+import getpass
+import os
+from io import BytesIO
+
+def generate_random_key():
+    # Générer une clé aléatoire
+    process = subprocess.run(["openssl", "rand", "32"], stdout=subprocess.PIPE, text=False)
+    return process.stdout
+
+def encrypt_file_with_password(input_filename, password):
+    # Chiffrer les données avec un mot de passe
+    result = subprocess.run(
+        ["openssl", "enc", "-aes-256-cbc", "-salt","-pbkdf2", "-in", input_filename, "-k", password],
+        stdout=subprocess.PIPE,
+        text=False,
+    )
+    return result.stdout
+
+def encrypt_data_with_password(data, password, output_filename):
+    # Chiffrer les données avec un mot de passe
+    result = subprocess.run(
+        ["openssl", "enc", "-aes-256-cbc", "-salt","-pbkdf2", "-out", output_filename, "-k", password],
+        input=data,
+        stdout=subprocess.PIPE,
+        text=False,
+    )
+    return result.stdout
+
+def encrypt_data_with_password2(data, password):
+    # Chiffrer les données avec un mot de passe
+    result = subprocess.run(
+        ["openssl", "enc", "-aes-256-cbc", "-salt","-pbkdf2", "-k", password],
+        input=data,
+        stdout=subprocess.PIPE,
+        text=False,
+    )
+    return result.stdout
+
+def decrypt_data_with_password(encrypted_data, password):
+    # Déchiffrer les données avec un mot de passe
+    result = subprocess.run(
+        ["openssl", "enc", "-d", "-aes-256-cbc", "-salt", "-pbkdf2", "-k", password],
+        input=encrypted_data,
+        stdout=subprocess.PIPE,
+        text=False,
+    )
+    return result.stdout
+
+def create_folder_if_not_exists(folder_name):
+    if not os.path.exists(folder_name):
+        os.makedirs(folder_name)
+
+def init():
+    password1 = getpass.getpass(prompt="Veuillez entrer le mot de passe de l'admin 1 : ")
+    password2 = getpass.getpass(prompt="Veuillez entrer le mot de passe de l'admin 2 : ")
+
+    mykey = generate_random_key()
+
+    crypt = encrypt_file_with_password("mdp.txt", mykey)
+
+    # Chiffrer mdpcrypt.txt avec le premier mot de passe
+    create_folder_if_not_exists("cle1")
+    encrypt_data_with_password(crypt, password1, "cle1/crypt.txt")
+
+    # Chiffrer myKey.txt avec le deuxième mot de passe
+    create_folder_if_not_exists("cle2")
+    encrypt_data_with_password(mykey, password2, "cle2/keycrypt.txt")
+
+    print("Opérations de chiffrement terminées avec succès.")
+
+def updtateMdp(updatedmdp, password1, password2):
+
+    mykey = generate_random_key()
+
+    crypt = encrypt_data_with_password2(updatedmdp, mykey)
+
+    # Chiffrer mdpcrypt.txt avec le premier mot de passe
+    create_folder_if_not_exists("cle1")
+    encrypt_data_with_password(crypt, password1, "cle1/crypt.txt")
+
+    # Chiffrer myKey.txt avec le deuxième mot de passe
+    create_folder_if_not_exists("cle2")
+    encrypt_data_with_password(mykey, password2, "cle2/keycrypt.txt")
+
+    print("Opérations de chiffrement terminées avec succès.")
+
+
+
+def test_supp(supprimer,password1,password2,mdp):
+
+        if supprimer == False:
+            nom = input("entré un nom  a tester ")
+            numero = input("entré un numero de carte a tester ")
+        else:
+            nom = input("entré un nom  a supprmer ")
+            numero = input("entré un numero de carte a supprimer ")
+
+        pair_to_test = f"{nom}:{numero}".encode()
+        lines = mdp.split(b'\n')
+        
+        
+        if pair_to_test.decode() in mdp.decode(errors='ignore'):
+            print(f"La paire '{pair_to_test}' est présente dans le fichier ")
+            if supprimer == True:
+                lines.remove(pair_to_test)
+                updated_mdp = b'\n'.join(lines)
+                updtateMdp(updated_mdp, password1, password2)
+                print("paire supprimé avec succée")
+
+        else:
+            print(f"La paire '{pair_to_test}' n'est pas présente dans le fichier")
+
+
+
+       
+
+        
+    
+
+try:  
+    password1 = getpass.getpass(prompt="Veuillez entrer le mot de passe de l'admin 1 : ")
+    password2 = getpass.getpass(prompt="Veuillez entrer le mot de passe de l'admin 2 : ")
+
+    # Déchiffrer mdpcrypt.txt avec le premier mot de passe
+    encrypted_data1 = open("cle1/crypt.txt", "rb").read()
+    decrypted_data1 = decrypt_data_with_password(encrypted_data1, password1)
+
+    # Déchiffrer myKey.txt avec le deuxième mot de passe
+    encrypted_data2 = open("cle2/keycrypt.txt", "rb").read()
+    decrypted_data2 = decrypt_data_with_password(encrypted_data2, password2)
+    mdp = decrypt_data_with_password(decrypted_data1, decrypted_data2)
+    first_line = mdp.split(b'\n')[0].decode(errors='ignore')
+
+    if first_line == "mdp:":
+        print("Opérations de déchiffrement terminées avec succès.")
+    else:
+        print("Erreur de déchiffrement ")
+        exit()
+except FileNotFoundError:
+        print("Cle USB manquante : Un des dossiers 'cle1' ou 'cle2' n'a pas été trouvé.")
+        exit()
+
+except subprocess.CalledProcessError as e:
+        print("Erreur de déchiffrement avec OpenSSL:", e)
+        exit()
+
+except Exception as e:
+        print("une erreur est survenu :", e)
+        exit()
+
+while True:
+    print("\nMenu:")
+    print("1. tester une paire")
+    print("2. supprimer une paire")
+    print("3. Quitter")
+
+    choice = input("Choisissez une option (1, 2 ou 3 ) : ")
+
+    if choice == "1":
+        test_supp(False,password1,password2,mdp)
+    elif choice == "2":
+        test_supp(True,password1,password2,mdp)
+    elif choice == "3":
+        break
+    else:
+        print("Option invalide. Veuillez choisir 1, 2, ou 3.")
